@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LOGIC LAB // Simulator Tabel Kebenaran & Verifikator Argumen</title>
+    <style>
+        :root {
+            --bg: #f6f5f0;
+            --surface: #ffffff;
+            --ink: #141413;
+            --muted: #5e5d59;
+            --border: #141413;
+            --accent: #0f4c81;
+            --true-bg: #e6f4ea;
+            --true-ink: #0d652d;
+            --false-bg: #fce8e6;
+            --false-ink: #c5221f;
+            --warn-bg: #fef7e0;
+            --warn-ink: #b06000;
+            --mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
+            --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.5;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            box-shadow: 6px 6px 0 var(--border);
+        }
+
+        header {
+            padding: 20px 24px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: #eae8e1;
+        }
+
+        .brand-tag {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: var(--ink);
+            color: var(--surface);
+            padding: 4px 8px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 700;
+            background: #eae8e1;
+            border: none;
+            border-right: 2px solid var(--border);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .tab-btn:last-child {
+            border-right: none;
+        }
+
+        .tab-btn.active {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: inset 0 -4px 0 var(--accent);
+        }
+
+        .panel {
+            display: none;
+            padding: 24px;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .box {
+            border: 1.5px solid var(--border);
+            padding: 16px;
+            background: #faf9f6;
+            margin-bottom: 16px;
+        }
+
+        .box-title {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #d5d3cc;
+            padding-bottom: 6px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-family: var(--mono);
+            font-size: 15px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            margin-bottom: 12px;
+        }
+
+        .kbd-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .kbd-btn {
+            font-family: var(--mono);
+            font-size: 13px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .kbd-btn:hover {
+            background: var(--ink);
+            color: var(--surface);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--ink);
+            color: var(--surface);
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+        }
+
+        .preset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .preset-item {
+            text-align: left;
+            padding: 8px 10px;
+            font-family: var(--mono);
+            font-size: 12px;
+            border: 1px solid #c5c3bc;
+            background: var(--surface);
+            cursor: pointer;
+        }
+
+        .preset-item:hover {
+            border-color: var(--ink);
+            background: #f0eee8;
+        }
+
+        .pipeline-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .pipe-step {
+            border: 1.5px solid var(--border);
+            padding: 10px 12px;
+            background: #faf9f6;
+        }
+
+        .pipe-step span {
+            display: block;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .pipe-step code {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 800;
+            border: 1.5px solid var(--border);
+        }
+
+        .badge.tautology,
+        .badge.valid {
+            background: var(--true-bg);
+            color: var(--true-ink);
+        }
+
+        .badge.contradiction,
+        .badge.invalid {
+            background: var(--false-bg);
+            color: var(--false-ink);
+        }
+
+        .badge.contingency {
+            background: var(--warn-bg);
+            color: var(--warn-ink);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1.5px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        th {
+            background: #eae8e1;
+            font-weight: 700;
+        }
+
+        th.final-col {
+            background: #d6e4f0;
+            color: var(--ink);
+        }
+
+        td.val-T {
+            background: var(--true-bg);
+            color: var(--true-ink);
+            font-weight: 700;
+        }
+
+        td.val-F {
+            background: var(--false-bg);
+            color: var(--false-ink);
+        }
+
+        tr.critical-row td {
+            box-shadow: inset 0 2px 0 #0d652d, inset 0 -2px 0 #0d652d;
+        }
+
+        tr.counter-row td {
+            background: #fad2cf !important;
+            color: #a50e0e !important;
+            font-weight: 800;
+        }
+
+        .error-msg {
+            padding: 12px;
+            background: var(--false-bg);
+            color: var(--false-ink);
+            border: 1.5px solid var(--false-ink);
+            font-family: var(--mono);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <span class="brand-tag">PJBL-1 // LOGIKA MATEMATIKA</span>
+                <h1>Simulator Tabel Kebenaran & Verifikator Argumen</h1>
+            </div>
+            <div style="font-family: var(--mono); font-size: 12px; text-align: right;">
+                <div>ENGINE: <strong>SHUNTING-YARD + RPN AST</strong></div>
+                <div>EVALUATOR: <strong>ZERO-EVAL STACK MACHINE</strong></div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-sim', this)">01. Simulator Tabel Kebenaran</button>
+            <button class="tab-btn" onclick="switchTab('tab-arg', this)">02. Verifikator Validitas Argumen</button>
+        </div>
+
+        <!-- TAB 1: SIMULATOR TABEL KEBENARAN -->
+        <div id="tab-sim" class="panel active">
+            <div class="grid-2">
+                <div>
+                    <div class="box">
+                        <div class="box-title">Input Ekspresi Proposisi</div>
+                        <label for="expr-input">Rumus Logika</label>
+                        <input type="text" id="expr-input" value="((p -> q) & (q -> r)) -> (p -> r)" />
+                        <div class="kbd-bar">
+                            <button class="kbd-btn" onclick="insertSym('expr-input', '~')">~ (NOT)</button>
+                            <button class="kbd-btn" onclick="insertSym('expr-input', ' & ')">&amp; (AND)</button>
+                            <button class="kbd-btn" onclick="insertSym('expr-input', ' | ')">| (OR)</button>
+                            <button class="kbd-btn" onclick="insertSym('expr-input', ' ⊕ ')">⊕ (XOR)</button>
+                            <button class="kbd-btn" onclick="insertSym('expr-input', ' -> ')">-&gt; (IMPL)</button>
+                            <button class="kbd-btn" onclick="insertSym('expr-input', ' <-> ')">&lt;-&gt;
+                                (BIIMPL)</button>
+                        </div>
+                        <button class="btn-primary" onclick="runTruthTable()">Bangkitkan Tabel Kebenaran</button>
+                    </div>
+
+                    <div class="box">
+                        <div class="box-title">Preset Pengujian Cepat (Demo)</div>
+                        <div class="preset-list">
+                            <button class="preset-item" onclick="setExpr('((p -> q) & (q -> r)) -> (p -> r)')">
+                                <strong>[Tautologi]</strong> Silogisme Hipotetis
+                            </button>
+                            <button class="preset-item" onclick="setExpr('~(p | q) <-> (~p & ~q)')">
+                                <strong>[Tautologi]</strong> Hukum De Morgan
+                            </button>
+                            <button class="preset-item" onclick="setExpr('(p & ~p) | (q & ~q)')">
+                                <strong>[Kontradiksi]</strong> Hukum Negasi Ganda Ekstrem
+                            </button>
+                            <button class="preset-item" onclick="setExpr('(p -> q) & (q -> ~r)')">
+                                <strong>[Kontingensi]</strong> Implikasi Berantai 3 Variabel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div id="sim-error" class="error-msg"></div>
+                    <div class="pipeline-bar">
+                        <div class="pipe-step">
+                            <span>1. Variabel Terdeteksi</span>
+                            <code id="out-vars">-</code>
+                        </div>
+                        <div class="pipe-step">
+                            <span>2. Token Infix (Lexer)</span>
+                            <code id="out-tokens">-</code>
+                        </div>
+                        <div class="pipe-step">
+                            <span>3. Notasi Postfix / RPN</span>
+                            <code id="out-rpn">-</code>
+                        </div>
+                    </div>
+
+                    <div class="box" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:12px; color:var(--muted); font-family:var(--mono);">KLASIFIKASI
+                                PROPOSISI AKHIR</div>
+                            <div id="out-summary" style="font-size:14px; font-weight:600; margin-top:2px;">-</div>
+                        </div>
+                        <span id="out-badge" class="badge">-</span>
+                    </div>
+
+                    <div class="table-wrap" id="sim-table-wrap"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: VERIFIKATOR ARGUMEN -->
+        <div id="tab-arg" class="panel">
+            <div class="grid-2">
+                <div>
+                    <div class="box">
+                        <div class="box-title">Input Premis & Konklusi</div>
+                        <label for="premises-input">Daftar Premis (Satu premis per baris)</label>
+                        <textarea id="premises-input" rows="4">p -> q
+~q</textarea>
+                        <label for="conclusion-input">Konklusi (∴)</label>
+                        <input type="text" id="conclusion-input" value="~p" />
+                        <button class="btn-primary" onclick="runArgumentVerifier()">Verifikasi Validitas
+                            Argumen</button>
+                    </div>
+
+                    <div class="box">
+                        <div class="box-title">Preset Argumen Standar</div>
+                        <div class="preset-list">
+                            <button class="preset-item" onclick="setArg(['p -> q', 'p'], 'q')">
+                                <strong>[VALID]</strong> Modus Ponens
+                            </button>
+                            <button class="preset-item" onclick="setArg(['p -> q', '~q'], '~p')">
+                                <strong>[VALID]</strong> Modus Tollens
+                            </button>
+                            <button class="preset-item" onclick="setArg(['p | q', '~p'], 'q')">
+                                <strong>[VALID]</strong> Silogisme Disjungtif
+                            </button>
+                            <button class="preset-item" onclick="setArg(['p -> q', 'q'], 'p')">
+                                <strong>[INVALID]</strong> Fallacy: Affirming the Consequent
+                            </button>
+                            <button class="preset-item" onclick="setArg(['p -> q', '~p'], '~q')">
+                                <strong>[INVALID]</strong> Fallacy: Denying the Antecedent
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div id="arg-error" class="error-msg"></div>
+                    <div class="box" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:12px; color:var(--muted); font-family:var(--mono);">STATUS KEABSAHAN
+                                ARGUMEN</div>
+                            <div id="arg-summary" style="font-size:14px; font-weight:600; margin-top:2px;">-</div>
+                        </div>
+                        <span id="arg-badge" class="badge">-</span>
+                    </div>
+                    <div class="table-wrap" id="arg-table-wrap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const OPS = {
+            "~": { prec: 5, arity: 1, assoc: "R" },
+            "&": { prec: 4, arity: 2, assoc: "L" },
+            "|": { prec: 3, arity: 2, assoc: "L" },
+            "⊕": { prec: 2, arity: 2, assoc: "L" },
+            "->": { prec: 1, arity: 2, assoc: "R" },
+            "<->": { prec: 0, arity: 2, assoc: "L" }
+        };
+
+        function tokenize(expr) {
+            let s = expr.trim();
+            if (!s) throw new Error("Ekspresi tidak boleh kosong.");
+            s = s.replace(/<=>|↔/g, " <-> ")
+                .replace(/=>|→/g, " -> ")
+                .replace(/\bxor\b/gi, " ⊕ ")
+                .replace(/\band\b|\^|∧/gi, " & ")
+                .replace(/\bor\b|∨/gi, " | ")
+                .replace(/\bnot\b|!|¬/gi, " ~ ");
+
+            const tokens = [];
+            let i = 0;
+            while (i < s.length) {
+                if (/\s/.test(s[i])) { i++; continue; }
+                if (s.startsWith("<->", i)) { tokens.push("<->"); i += 3; }
+                else if (s.startsWith("->", i)) { tokens.push("->"); i += 2; }
+                else if ("()~&|⊕".includes(s[i])) { tokens.push(s[i]); i++; }
+                else if (/[a-zA-Z]/.test(s[i])) {
+                    if ((s[i] === "v" || s[i] === "V") && (i + 1 >= s.length || !/[a-zA-Z0-9_]/.test(s[i + 1])) &&
+                        tokens.length > 0 && (tokens[tokens.length - 1] === ")" || /^[a-z0-9_]+\$/i.test(tokens[tokens.length - 1]))) {
+                        tokens.push("|");
+                        i++;
+                    } else {
+                        let v = "";
+                        while (i < s.length && /[a-zA-Z0-9_]/.test(s[i])) { v += s[i++]; }
+                        tokens.push(v.toLowerCase());
+                    }
+                } else {
+                    throw new Error(`Karakter tidak valid: '${s[i]}'`);
+                }
+            }
+            validateTokens(tokens);
+            return tokens;
+        }
+
+        function validateTokens(tokens) {
+            let bal = 0, prev = "START";
+            tokens.forEach((t, idx) => {
+                if (t === "(") {
+                    if (prev === "VAR" || prev === "RPAREN") throw new Error(`Kurung buka '(' tidak valid pada token ke-${idx + 1}`);
+                    bal++; prev = "LPAREN";
+                } else if (t === ")") {
+                    if (["OP1", "OP2", "LPAREN", "START"].includes(prev)) throw new Error(`Kurung tutup ')' kosong/tidak valid`);
+                    bal--;
+                    if (bal < 0) throw new Error("Kurung tutup ')' berlebih.");
+                    prev = "RPAREN";
+                } else if (t === "~") {
+                    if (prev === "VAR" || prev === "RPAREN") throw new Error("Negasi '~' tidak boleh setelah variabel.");
+                    prev = "OP1";
+                } else if (OPS[t]) {
+                    if (["START", "OP1", "OP2", "LPAREN"].includes(prev)) throw new Error(`Operator '${t}' kehilangan operan kiri.`);
+                    prev = "OP2";
+                } else {
+                    if (prev === "VAR" || prev === "RPAREN") throw new Error(`Dua variabel berurutan tanpa operator: '${t}'`);
+                    prev = "VAR";
+                }
+            });
+            if (bal !== 0) throw new Error("Tanda kurung '(' dan ')' tidak seimbang.");
+            if (prev === "OP1" || prev === "OP2") throw new Error("Ekspresi berakhir menggantung pada operator.");
+        }
+
+        function toPostfix(tokens) {
+            const out = [], stack = [];
+            for (const t of tokens) {
+                if (t === "(") stack.push(t);
+                else if (t === ")") {
+                    while (stack.length && stack[stack.length - 1] !== "(") out.push(stack.pop());
+                    stack.pop();
+                } else if (OPS[t]) {
+                    const cur = OPS[t];
+                    while (stack.length && OPS[stack[stack.length - 1]]) {
+                        const top = OPS[stack[stack.length - 1]];
+                        if ((cur.assoc === "L" && cur.prec <= top.prec) || (cur.assoc === "R" && cur.prec < top.prec)) {
+                            out.push(stack.pop());
+                        } else break;
+                    }
+                    stack.push(t);
+                } else out.push(t);
+            }
+            while (stack.length) out.push(stack.pop());
+            return out;
+        }
+
+        function nodeToString(node) {
+            if (!node.left && !node.right) return node.token;
+            if (node.token === "~") {
+                const inner = nodeToString(node.right);
+                return node.right.left ? `~(${inner})` : `~${inner}`;
+            }
+            let l = nodeToString(node.left), r = nodeToString(node.right);
+            if (node.left.left && OPS[node.left.token].prec < OPS[node.token].prec) l = `(${l})`;
+            if (node.right.left && OPS[node.right.token].prec <= OPS[node.token].prec) r = `(${r})`;
+            return `${l} ${node.token} ${r}`;
+        }
+
+        function buildAST(postfix) {
+            const stack = [], subs = [], seen = new Set();
+            for (const t of postfix) {
+                if (!OPS[t]) stack.push({ token: t, left: null, right: null });
+                else if (OPS[t].arity === 1) {
+                    const right = stack.pop();
+                    const node = { token: t, left: null, right };
+                    const lbl = nodeToString(node);
+                    if (!seen.has(lbl)) { seen.add(lbl); subs.push({ label: lbl, node }); }
+                    stack.push(node);
+                } else {
+                    const right = stack.pop(), left = stack.pop();
+                    const node = { token: t, left, right };
+                    const lbl = nodeToString(node);
+                    if (!seen.has(lbl)) { seen.add(lbl); subs.push({ label: lbl, node }); }
+                    stack.push(node);
+                }
+            }
+            return { root: stack[0], subs };
+        }
+
+        function evalAST(node, env) {
+            if (!node.left && !node.right) return env[node.token];
+            if (node.token === "~") return !evalAST(node.right, env);
+            const l = evalAST(node.left, env), r = evalAST(node.right, env);
+            switch (node.token) {
+                case "&": return l && r;
+                case "|": return l || r;
+                case "⊕": return l !== r;
+                case "->": return (!l) || r;
+                case "<->": return l === r;
+            }
+        }
+
+        function getCombinations(vars) {
+            const total = 1 << vars.length, combos = [];
+            for (let mask = total - 1; mask >= 0; mask--) {
+                const env = {};
+                vars.forEach((v, i) => { env[v] = Boolean((mask >> (vars.length - 1 - i)) & 1); });
+                combos.push(env);
+            }
+            return combos;
+        }
+
+        function runTruthTable() {
+            const errBox = document.getElementById("sim-error");
+            errBox.style.display = "none";
+            try {
+                const expr = document.getElementById("expr-input").value;
+                const tokens = tokenize(expr);
+                const postfix = toPostfix(tokens);
+                const { root, subs } = buildAST(postfix);
+                const vars = [...new Set(tokens.filter(t => !OPS[t] && t !== "(" && t !== ")"))].sort();
+
+                document.getElementById("out-vars").textContent = vars.join(", ") || "(Konstanta)";
+                document.getElementById("out-tokens").textContent = tokens.join(" ");
+                document.getElementById("out-rpn").textContent = postfix.join(" ");
+
+                const combos = getCombinations(vars);
+                const subCols = subs.length ? subs : [{ label: nodeToString(root), node: root }];
+                let tCount = 0, fCount = 0;
+
+                let html = "<table><thead><tr>";
+                vars.forEach(v => html += `<th>${v}</th>`);
+                subCols.forEach((s, idx) => {
+                    const cls = idx === subCols.length - 1 ? 'class="final-col"' : '';
+                    html += `<th ${cls}>${s.label}</th>`;
+                });
+                html += "</tr></thead><tbody>";
+
+                combos.forEach(env => {
+                    html += "<tr>";
+                    vars.forEach(v => html += `<td class="${env[v] ? 'val-T' : 'val-F'}">${env[v] ? 'B (T)' : 'S (F)'}</td>`);
+                    subCols.forEach((s, idx) => {
+                        const val = evalAST(s.node, env);
+                        if (idx === subCols.length - 1) val ? tCount++ : fCount++;
+                        html += `<td class="${val ? 'val-T' : 'val-F'}">${val ? 'B (T)' : 'S (F)'}</td>`;
+                    });
+                    html += "</tr>";
+                });
+                html += "</tbody></table>";
+                document.getElementById("sim-table-wrap").innerHTML = html;
+
+                const badge = document.getElementById("out-badge");
+                const summary = document.getElementById("out-summary");
+                if (fCount === 0) {
+                    badge.className = "badge tautology";
+                    badge.textContent = "TAUTOLOGI";
+                    summary.textContent = `Seluruh ${tCount} interpretasi menghasilkan nilai Benar (B).`;
+                } else if (tCount === 0) {
+                    badge.className = "badge contradiction";
+                    badge.textContent = "KONTRADIKSI";
+                    summary.textContent = `Seluruh ${fCount} interpretasi menghasilkan nilai Salah (S).`;
+                } else {
+                    badge.className = "badge contingency";
+                    badge.textContent = "KONTINGENSI";
+                    summary.textContent = `Campuran: ${tCount} baris Benar dan ${fCount} baris Salah.`;
+                }
+            } catch (e) {
+                errBox.textContent = "Error Sintaks: " + e.message;
+                errBox.style.display = "block";
+            }
+        }
+
+        function runArgumentVerifier() {
+            const errBox = document.getElementById("arg-error");
+            errBox.style.display = "none";
+            try {
+                const rawPremises = document.getElementById("premises-input").value
+                    .split("\n").map(s => s.trim()).filter(Boolean);
+                const rawConc = document.getElementById("conclusion-input").value.trim();
+                if (!rawPremises.length) throw new Error("Masukkan minimal 1 premis.");
+
+                const allVars = new Set();
+                const parsedPremises = rawPremises.map((p, i) => {
+                    const toks = tokenize(p);
+                    toks.filter(t => !OPS[t] && t !== "(" && t !== ")").forEach(v => allVars.add(v));
+                    const { root } = buildAST(toPostfix(toks));
+                    return { label: `P${i + 1}: ${nodeToString(root)}`, node: root };
+                });
+
+                const cToks = tokenize(rawConc);
+                cToks.filter(t => !OPS[t] && t !== "(" && t !== ")").forEach(v => allVars.add(v));
+                const { root: cNode } = buildAST(toPostfix(cToks));
+                const vars = [...allVars].sort();
+                const combos = getCombinations(vars);
+
+                let counterexamples = [];
+                let criticalCount = 0;
+
+                let html = "<table><thead><tr><th>#</th>";
+                vars.forEach(v => html += `<th>${v}</th>`);
+                parsedPremises.forEach(p => html += `<th>${p.label}</th>`);
+                html += `<th class="final-col">∴ ${nodeToString(cNode)}</th><th>Status Baris</th></tr></thead><tbody>`;
+
+                combos.forEach((env, idx) => {
+                    const pVals = parsedPremises.map(p => evalAST(p.node, env));
+                    const cVal = evalAST(cNode, env);
+                    const allPremisesTrue = pVals.every(Boolean);
+
+                    let rowClass = "", statusText = "-";
+                    if (allPremisesTrue && cVal) {
+                        rowClass = "critical-row";
+                        statusText = "Baris Kritis (Valid)";
+                        criticalCount++;
+                    } else if (allPremisesTrue && !cVal) {
+                        rowClass = "counter-row";
+                        statusText = "COUNTEREXAMPLE!";
+                        criticalCount++;
+                        counterexamples.push({ row: idx + 1, env });
+                    }
+
+                    html += `<tr class="${rowClass}"><td>${idx + 1}</td>`;
+                    vars.forEach(v => html += `<td class="${env[v] ? 'val-T' : 'val-F'}">${env[v] ? 'B' : 'S'}</td>`);
+                    pVals.forEach(val => html += `<td class="${val ? 'val-T' : 'val-F'}">${val ? 'B' : 'S'}</td>`);
+                    html += `<td class="${cVal ? 'val-T' : 'val-F'}">${cVal ? 'B' : 'S'}</td>`;
+                    html += `<td>${statusText}</td></tr>`;
+                });
+                html += "</tbody></table>";
+                document.getElementById("arg-table-wrap").innerHTML = html;
+
+                const badge = document.getElementById("arg-badge");
+                const summary = document.getElementById("arg-summary");
+                if (counterexamples.length === 0) {
+                    badge.className = "badge valid";
+                    badge.textContent = "ARGUMEN VALID (SAH)";
+                    summary.textContent = `Ditemukan ${criticalCount} baris kritis; seluruhnya menghasilkan konklusi Benar.`;
+                } else {
+                    const ce = counterexamples[0];
+                    const assign = Object.entries(ce.env).map(([k, v]) => `${k}=${v ? 'B' : 'S'}`).join(", ");
+                    badge.className = "badge invalid";
+                    badge.textContent = "INVALID (FALLACY)";
+                    summary.textContent = `Ditemukan penyangkal pada Baris #${ce.row} (${assign}): semua premis Benar namun konklusi Salah.`;
+                }
+            } catch (e) {
+                errBox.textContent = "Error Argumen: " + e.message;
+                errBox.style.display = "block";
+            }
+        }
+
+        function switchTab(id, btn) {
+            document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById(id).classList.add("active");
+            btn.classList.add("active");
+        }
+
+        function insertSym(inputId, sym) {
+            const el = document.getElementById(inputId);
+            el.value += sym;
+            el.focus();
+        }
+
+        function setExpr(val) {
+            document.getElementById("expr-input").value = val;
+            runTruthTable();
+        }
+
+        function setArg(premises, conc) {
+            document.getElementById("premises-input").value = premises.join("\n");
+            document.getElementById("conclusion-input").value = conc;
+            runArgumentVerifier();
+        }
+
+        runTruthTable();
+        runArgumentVerifier();
+    </script>
+</body>
+
+</html>
